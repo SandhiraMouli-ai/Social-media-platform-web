@@ -1,0 +1,98 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<div class="inbox-wrapper">
+    <!-- Left Pane: Conversations List -->
+    <div class="chat-sidebar">
+        <header class="chat-sidebar-header">
+            <h3>Chats</h3>
+        </header>
+        
+        <div class="chat-list">
+            {% if chat_users %}
+                {% for chat_user in chat_users %}
+                    <a href="{% url 'inbox' %}?u={{ chat_user.username }}" class="chat-list-item {% if active_chat_user == chat_user %}active{% endif %}">
+                        <img src="{% if chat_user.profile.profile_picture %}{{ chat_user.profile.profile_picture.url }}{% else %}{% static 'images/default.png' %}{% endif %}" alt="{{ chat_user.username }}" class="chat-item-avatar">
+                        <div class="chat-item-info">
+                            <span class="chat-item-name">{{ chat_user.username }}</span>
+                            <span class="chat-item-preview">Click to chat</span>
+                        </div>
+                    </a>
+                {% endfor %}
+            {% else %}
+                <div class="chat-list-empty">
+                    <p>No active chats.</p>
+                    <p class="subtext">Visit a profile to start a conversation!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Pane: Message Feed Window -->
+    <div class="chat-feed-window">
+        {% if active_chat_user %}
+            <!-- Chat Header -->
+            <header class="chat-feed-header">
+                <a href="{% url 'profile' username=active_chat_user.username %}" class="chat-header-user">
+                    <img src="{% if active_chat_user.profile.profile_picture %}{{ active_chat_user.profile.profile_picture.url }}{% else %}{% static 'images/default.png' %}{% endif %}" alt="{{ active_chat_user.username }}" class="chat-header-avatar">
+                    <div class="chat-header-meta">
+                        <h4>{{ active_chat_user.username }}</h4>
+                        <p class="status-indicator">@{{ active_chat_user.username }}</p>
+                    </div>
+                </a>
+            </header>
+
+            <!-- Messages Stream -->
+            <div class="chat-messages-container" id="chat-messages-box">
+                {% for message in chat_messages %}
+                    <div class="message-bubble-wrapper {% if message.sender == request.user %}outgoing{% else %}incoming{% endif %}">
+                        <div class="message-bubble">
+                            <p class="message-content">{{ message.content }}</p>
+                            <span class="message-time">{{ message.timestamp|date:'I:M A' }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Message Composer -->
+            <form class="chat-composer-form" id="chat-composer-form" data-chat-user="{{ active_chat_user.username }}" onsubmit="submitChatMessage(event, this)">
+                {% csrf_token %}
+                <input type="text" name="content" id="chat-message-input" placeholder="Type a message..." autocomplete="off" required>
+                <button type="submit" class="btn btn-primary btn-icon-only" title="Send Message">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </form>
+        {% else %}
+            <!-- Chat Placeholder Empty State -->
+            <div class="chat-feed-empty">
+                <div class="chat-empty-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <h3>Your Conversations</h3>
+                <p>Select a chat from the sidebar or visit someone's profile to start a new chat!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if active_chat_user %}
+<script>
+    // Initial scroll to bottom
+    const msgContainer = document.getElementById('chat-messages-box');
+    if (msgContainer) {
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+    
+    // Periodically poll for new incoming messages from this user (every 3 seconds)
+    const activeUsername = "{{ active_chat_user.username }}";
+    setInterval(() => {
+        pollMessages(activeUsername);
+    }, 3000);
+</script>
+{% endif %}
+{% endblock %}

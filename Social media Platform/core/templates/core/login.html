@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocialUp - Log In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="auth-body">
+    <!-- Ambient glow backdrops -->
+    <div class="glow-bg glow-1"></div>
+    <div class="glow-bg glow-2"></div>
+    <div class="glow-bg glow-3"></div>
+
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-brand">
+                <div class="brand-logo-large">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#brand-grad)" />
+                        <path d="M2 17L12 22L22 17" stroke="url(#brand-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="url(#brand-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="brand-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#818cf8" />
+                                <stop offset="1" stop-color="#c084fc" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1 class="auth-title">Social<span>Up</span></h1>
+                <p class="auth-subtitle">Log in to connect and share moments</p>
+            </div>
+
+            {% if messages %}
+                <div class="auth-messages">
+                    {% for message in messages %}
+                        <div class="auth-message error">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'login' %}" class="auth-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Log In</button>
+            </form>
+
+            <div class="auth-footer">
+                Don't have an account? <a href="{% url 'signup' %}" class="auth-link">Sign Up</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocialUp -{% block title %}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <!-- Ambient glow backdrops -->
+    <div class="glow-bg glow-1"></div>
+    <div class="glow-bg glow-2"></div>
+    <div class="glow-bg glow-3"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#brand-grad)" />
+                        <path d="M2 17L12 22L22 17" stroke="url(#brand-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="url(#brand-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="brand-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#818cf8" />
+                                <stop offset="1" stop-color="#c084fc" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1 class="brand-name">Social<span>Up</span></h1>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="{% url 'feed' %}" class="nav-item {% if active_tab == 'home' %}active{% endif %}" id="nav-home">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>Feed</span>
+                </a>
+                <a href="{% url 'inbox' %}" class="nav-item {% if active_tab == 'messages' %}active{% endif %}" id="nav-messages">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>Messages</span>
+                </a>
+                <a href="{% url 'profile' username=request.user.username %}" class="nav-item {% if active_tab == 'profile' %}active{% endif %}" id="nav-profile">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Profile</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-pill">
+                    <img src="{% if request.user.profile.profile_picture %}{{ request.user.profile.profile_picture.url }}{% else %}{% static 'images/default.png' %}{% endif %}" alt="{{ request.user.username }}" class="user-avatar-small">
+                    <div class="user-pill-info">
+                        <span class="user-pill-name">{{ request.user.username }}</span>
+                        <span class="user-pill-handle">@{{ request.user.username }}</span>
+                    </div>
+                </div>
+                <a href="{% url 'logout' %}" class="btn btn-logout" id="btn-logout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Log Out</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            {% if messages %}
+                <div class="notifications-container">
+                    {% for message in messages %}
+                        <div class="notification notification-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Right Panel (Sidebar Suggestions) -->
+        <aside class="right-panel">
+            <div class="widget suggestions-widget">
+                <h3 class="widget-title">Who to Follow</h3>
+                <div class="suggestions-list">
+                    {% if suggestions %}
+                        {% for suggestion in suggestions %}
+                            <div class="suggestion-card" id="suggestion-{{ suggestion.id }}">
+                                <a href="{% url 'profile' username=suggestion.user.username %}" class="suggestion-link">
+                                    <img src="{% if suggestion.profile_picture %}{{ suggestion.profile_picture.url }}{% else %}{% static 'images/default.png' %}{% endif %}" alt="{{ suggestion.user.username }}" class="suggestion-avatar">
+                                    <div class="suggestion-info">
+                                        <h4 class="suggestion-name">{{ suggestion.user.username }}</h4>
+                                        <p class="suggestion-handle">@{{ suggestion.user.username }}</p>
+                                    </div>
+                                </a>
+                                <button class="btn btn-follow-toggle btn-sm" data-profile-id="{{ suggestion.id }}" onclick="toggleFollow(this)">
+                                    Follow
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="empty-state-text">No suggestions available.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="widget copyright-widget">
+                <p>&copy; 2026 SocialUp Inc.</p>
+                <p>Designed with premium effects.</p>
+            </div>
+        </aside>
+    </div>
+
+    <!-- CSRF Token for JavaScript AJAX requests -->
+    <script>
+        const CSRF_TOKEN = '{{ csrf_token }}';
+    </script>
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
